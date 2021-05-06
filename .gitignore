@@ -1,0 +1,18 @@
+# Ignore everything
+*.*
+
+# Add these files
+!readme.md
+
+!.gitattributes
+!.gitignore
+!.gitkeep
+!.github
+
+!requirements.txt
+
+# Add these types
+!*.py
+
+# Forget
+*nocommit*
