@@ -1,9 +1,9 @@
 """Simple example"""
 from __future__ import absolute_import
 
-from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 
+from flask import Flask, render_template
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
