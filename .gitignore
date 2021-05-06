@@ -13,6 +13,7 @@
 
 # Add these types
 !*.py
+!*.html
 
 # Forget
 *nocommit*
