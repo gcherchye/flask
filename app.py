@@ -3,8 +3,10 @@ from __future__ import absolute_import
 
 from datetime import datetime
 import os
+from threading import Thread
 
 from flask_bootstrap import Bootstrap
+from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -21,14 +23,21 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Initialisation of the app and the flask extension
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = nocommit.SECRET_KEY
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[FLASKY] '
+app.config['FLASKY_MAIL_SENDER'] = 'FLASKY MASTER <g.cherchye@gmail.com>'
+app.config['FLASKY_ADMIN'] = os.environ.get('FLASKY_ADMIN')
 
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
 
 # ORM
 class Role(db.Model):
@@ -66,6 +75,9 @@ def index():
             db.session.commit()
             
             session['known'] = False
+
+            if app.config['FLASKY_ADMIN']:
+                send_mail(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user=user)
         else:
             session['known'] = True
         
@@ -107,3 +119,23 @@ class NameForm(FlaskForm):
 # Shell context
 def make_shell_context():
     return dict(db=db, User=User, Role=Role)
+
+# Send Mail
+def send_mail(to, subject, template, **kwargs):
+    msg = Message(
+        app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject,
+        sender=app.config['FLASKY_MAIL_SENDER'],
+        recipients=[to]
+    )
+
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    
+    thr = Thread(target=send_async_mail, args=[app, msg])
+    thr.start()
+
+    return thr
+
+def send_async_mail(app, msg):
+    with app.app_context():
+        mail.send(msg)
