@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 from threading import Thread
-import threading
 
 from flask import current_app, render_template
 from flask.app import Flask
@@ -11,7 +10,7 @@ from flask_mail import Message
 from . import mail
 
 
-def send_mail(to: str, subject: str, template: str, **kwargs) -> threading.Thread:
+def send_mail(to: str, subject: str, template: str, **kwargs) -> Thread:
     """Send a mail to someone using a template
 
     Args:
@@ -37,6 +36,7 @@ def send_mail(to: str, subject: str, template: str, **kwargs) -> threading.Threa
     thr.start()
 
     return thr
+
 
 def send_async_mail(app: Flask, msg: Message):
     with app.app_context():
